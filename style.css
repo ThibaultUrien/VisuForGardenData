@@ -151,7 +151,7 @@ body {
 	fill: var(--color);
 }
 .playerMarker:last-child{
-	filter: drop-shadow(0.5px 0.5px #000000de);
+	filter: url("#shadow");
 }
 .minimapCotainer > * {
 	background-color: white;
