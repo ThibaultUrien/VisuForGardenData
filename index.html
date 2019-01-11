@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Visu</title>
+ 	<meta charset="UTF-8">
+	<script src="https://d3js.org/d3.v5.min.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="start.js"></script>
+	<link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+	<div class="series">
+		<div class="view">
+		</div>
+		<div class="filters">Visible : </div>
+	</div>
+	
+	<div class="info">
+		<div class="serieInfo">
+			<div> Participants : <span class="participants"></span></div>
+			<div> Duration : <span class="duration"></span></div>
+				
+		</div>
+		<div class="eventInfo">
+			<div> Date : <span class="eventDate"></span></div>
+			<div class="eventType"></div>
+			<div class="eventOwnData"></div>
+		</div>
+		<input type="checkbox" name="mapButton" id="mapButton" >
+		<div class="minimapCotainer">
+			<label for="mapButton" class="mapButton"></label>
+			<svg class="minimap" preserveAspectRatio viewBox="-40 -40 50 93" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+				<g class="plantLayer"></g>
+			</svg>
+
+		</div>
+		<div class="chatViewPort">
+			<div class="chat">
+			
+			</div>
+		</div>
+		
+	</div>
+</body>
+</html>

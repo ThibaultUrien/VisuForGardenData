@@ -1,0 +1,159 @@
+html,body{
+	height: 95vh;
+}
+body {
+	display: flex;
+	flex-direction: row;
+	justify-content: stretch;
+	--select-color: #e7e2ff;
+}
+.view{
+	height: 100%;
+	display: grid;
+}
+.info > .chatViewPort{
+	overflow: auto;
+	position: relative;
+	flex: auto 2 100;
+}
+.info {
+	height: 100%;
+	flex: 20em 1 0;
+	max-width: 20em;
+	overflow-y: hidden;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	background-image: linear-gradient(to right,var(--select-color),transparent 0.3em);
+	padding-left: 0.2em;
+}
+.timeline {
+	flex: auto 4 1;
+	display: grid;
+	position: relative;
+	grid-template-rows: auto 3em;
+}
+.timeline{
+	height: 100%;
+	padding-right: 0.5em;
+}
+.timelineUsefull{
+	background-color: #faf6fc;
+	position: relative;
+}
+.expsView{
+	display: flex;
+	flex-direction: row;
+}
+.expLabel {
+	max-width: 20em;
+	flex: auto 1 2;
+}
+.eventMarker{
+	position: absolute;
+	width: 0.2em;
+	height: 100%;
+}
+.info > * {
+	flex: auto 0 0;
+	min-height: 0px;
+}
+.chatLines > span:first-child{
+	font-weight: bold;
+}
+.expsView.selected {
+	background-color: var(--select-color);
+}
+.series{
+	flex: auto 4 0;
+	position: relative;
+}
+.filters{
+	position: absolute;
+	width: 100%;
+	bottom: 2px;
+	background-color: #2d2d2d6e;
+}
+.filterSpan{
+	padding-right: 0.2em;
+}
+.filterSpan + .filterSpan{
+	border-left: 0.1em solid black;
+	padding-left: 0.2em;
+}
+.agentLine :not(:first-child) {
+	font-family: Arial;
+	font-size: 0.9em;
+}
+#toogleAgent +label{
+	color: white;
+}
+.minimap{
+	height: 100%;
+	position: absolute;
+	left: 50%;
+	transform: translate(-50%);
+	box-shadow: 0.2em 0.2em 0.5em #0003;
+	z-index: 1;
+}
+
+.minimapCotainer {
+  position: relative;
+  flex: 10em 2 2;
+}
+#mapButton:checked + .minimapCotainer{
+	position: absolute;
+	/*! background-color: white; */
+	z-index: 10;
+	right: 0px;
+	height: 95vh;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+#mapButton:checked +.minimapCotainer > .mapButton:after{
+	content: "-";
+}
+#mapButton:checked +.minimapCotainer > .mapButton{
+	z-index: 11;
+	font-size: 5em;
+	height: 1em;
+	line-height: 0.2;
+	border-top: 0.7em solid transparent;
+}
+#mapButton:checked +.minimapCotainer > .minimap{
+	position: initial;
+	transform: none;
+	height: auto;
+}
+#mapButton{
+	display: none;
+}
+.mapButton{
+	font-size: 8em;
+	font-weight: bold;
+	text-align: center;
+	z-index: 2;
+	box-sizing: border-box;
+	background-clip: content-box;
+}
+.mapButton:after{
+	content: "+";
+}
+.playerMarker line{
+	stroke: var(--color);
+	stroke-width: 0.5px;
+}
+.playerMarker circle,polygon{
+	fill: var(--color);
+}
+.playerMarker:last-child{
+	filter: drop-shadow(0.5px 0.5px #000000de);
+}
+.minimapCotainer > * {
+	background-color: white;
+}
+text{
+	font-size: 4px;
+}
