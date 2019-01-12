@@ -5,7 +5,7 @@ var selectedDate = 0;
 var MaxDuration;
 var playInterval;
 
-var hideOnTimeline =["PlantMotions","PlayerMotions"]
+var hideOnTimeline =["PlantMotions","PlayerMotions","Visibility"]
 function Play(pace){
 	window.clearInterval(playInterval)
 	if(!pace){
