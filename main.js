@@ -3,6 +3,39 @@ var colors = "8dd3c7ffffb3bebadafb807280b1d3fdb462b3de69fccde5d9d9d9bc80bdccebc5
 var typeColor = {};
 var selectedDate = 0;
 var MaxDuration;
+var playInterval;
+
+var hideOnTimeline =["PlantMotions","PlayerMotions"]
+function Play(pace){
+	window.clearInterval(playInterval)
+	if(!pace){
+
+		d3.select("#play_at0").node().checked = true;
+		return;
+	}
+	var delta = pace >0?1:-1
+	var time = 1000/pace*delta;
+	d3.selectAll(".timeline")
+		.each(d=>{
+				d.selectedTime = Math.max(Math.min(d.selectedTime ,MaxDuration),0);
+				
+		})
+	playInterval = window.setInterval(function(){
+		let canContinue = false;
+		let tl = d3.selectAll(".timeline")
+			.each(d=>{
+					d.selectedTime += delta;
+					if(d.selectedTime >0 && d.selectedTime < MaxDuration)
+						canContinue = true;
+			})
+		tl.select(".timelineUsefull") // propagate data
+		tl.selectAll(".timeslider")
+			.property("value",d=>d.selectedTime/MaxDuration)
+		refreshDetailsOfSeries()
+		if(!canContinue)
+			Play(0)
+	},time)
+}
 function colorOf(typeName){
 	if(!typeColor[typeName])
 		typeColor[typeName] = "#"+colorHash(typeName);
@@ -53,6 +86,7 @@ function sendFile(data,name){
 	},0)
 	
 }
+
 function setupBars(exps){
 	
 	
@@ -123,7 +157,6 @@ function setupBars(exps){
 		.enter()
 		.append("div")
 		.classed("expsView",1)
-		.on("mouseenter",displayDetailsOf)
 		.on("click",displayDetailsOf)
 	views.append("div")
 		.classed("expLabel",1)
@@ -146,6 +179,8 @@ function setupBars(exps){
 
 
 	displayFilters(Object.keys(markerTypes))
+	timeControl()
+	refreshDetailsOfSeries()
 }
 function displayFilters(markerTypes){
 	let fs = d3.select(".filters")
@@ -155,17 +190,18 @@ function displayFilters(markerTypes){
 		.append("span")
 		.classed("filterSpan",1)
 		.style("background-color",d=>colorOf(d))
-		
+	function applyFilter(type){
+		let checked = this.checked;
+			d3.selectAll('.eventMarker[eventtype="'+type+'"]')
+						.style("display",checked?"":"none")
+	}
 	fs.append("input")
 		.attr("type","checkbox")
 		.attr("id",d => "toogle"+d)
 		.attr("name",d => "toogle"+d)
-		.property('checked', true)
-		.on("change",function(type){
-			let checked = this.checked;
-			d3.selectAll('.eventMarker[eventtype="'+type+'"]')
-						.style("display",checked?"":"none")
-		});
+		.property('checked', t=>!hideOnTimeline.includes(t))
+		.on("change",applyFilter)
+		.each(applyFilter)
 	fs.append("label")
 		.attr("for",d => "toogle"+d)
 		.text(d=> d)
@@ -235,6 +271,8 @@ function refreshDetailsOfSeries(){
 	d3.select(".expsView.selected").each(displayDetailsOf)
 }
 function updateChat(serie) {
+	let chatVP = d3.select(".chatViewPort").node();
+	let isScrollMax = chatVP.scrollTop + chatVP.clientHeight *1.01 >= chatVP.scrollHeight  
 	var chatUpTo = d3.bisector(function(d) { return parseFloat(d[0])-serie.start; }).right
 	var chat = serie.UI.filter(x => x[5] == "ChatInputField")
 	let chatLimit = chatUpTo(chat,serie.selectedTime)
@@ -249,6 +287,8 @@ function updateChat(serie) {
 		.append("div")
 		.classed("chatLines",1)
 		.call(printChatLine,serie)
+	if(isScrollMax)
+		chatVP.scrollTop = chatVP.scrollHeight;
 }
 function printChatLine(line,serie){
 	
@@ -305,7 +345,7 @@ function updateMinimap(serie){
 	var newMarkers = playersMarkers.enter()
 		.append("g")
 		.attr("id", d=> "marker_"+d[0]+"_"+nameOf(d))
-		.attr("transform",d=>"translate("+d[2]+","+d[4]+")")
+		.attr("transform",d=>"translate("+d[2]+","+(-d[4])+")")
 		.classed("playerMarker",1)
 	newMarkers.append("circle")
 		.attr("r",rad)
@@ -319,12 +359,12 @@ function updateMinimap(serie){
 			return i>0? arr[i-1].__data__[2] - d[2]:0
 		})
 		.attr("y2",function(d,i,arr){
-			return i>0? arr[i-1].__data__[4] - d[4]:0
+			return i>0? -(arr[i-1].__data__[4] - d[4]):0
 		})
 	newMarkers.append("polygon")
 		.attr("points",d =>{
 			let lookx = d[5] * rad
-			let looky = d[7] * rad
+			let looky = -d[7] * rad
 			let sqrt3 = Math.sqrt(3)
 			return [
 				[-looky, lookx],
@@ -370,7 +410,7 @@ function updateMinimap(serie){
 		.text("🌳")
 		.append("title")
 	newPlantsMarkers.merge(markerPlants)
-		.attr("transform",d=>"rotate("+d[6]+") translate("+d[3]+","+d[5]+")")
+		.attr("transform",d=>"rotate("+d[6]+") translate("+d[3]+","+(-d[5])+")")
 		.select("title")
 		.text(d=> "Last modified by "+serie.players[d[2]])
 	markerPlants.exit().remove()
@@ -408,7 +448,29 @@ function displayDataOf(event){
 		.text(event.type)
 	displaySpeData(event.type, event.data)
 }
-
+function timeControl(){
+	let flows = [-10,-2,-1,0,1,2,10]
+	let flowControl = d3.select(".timeControl")
+		.selectAll("span")
+		.data(flows)
+		.enter()
+		.append("span")
+		.classed("timeButton",1)
+	flowControl.append("label")
+		.attr("for",d=>"play_at"+d)
+		.text(d=>d)
+	flowControl.append("input")
+		.attr("name",d=>"play_rate")
+		.attr("id",d=>"play_at"+d)
+		.attr("type","radio")
+		.on("change",function(d){
+			if(this.checked)
+				Play(d);
+		})
+		.each(function(d){
+			this.checked = !d;
+		})
+}
 function displaySpeData(type, data){
 	d3.select(".eventOwnData")
 		.text(data.toString())
