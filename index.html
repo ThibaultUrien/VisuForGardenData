@@ -6,6 +6,7 @@
 	<script src="https://d3js.org/d3.v5.min.js"></script>
 	<script type="text/javascript" src="main.js"></script>
 	<script type="text/javascript" src="start.js"></script>
+	<script type="text/javascript" src="LoadData.js"></script>
 	<link rel="stylesheet" type="text/css" href="style.css"/>
 </head>
 <body>
@@ -17,8 +18,20 @@
 		<div class="filters">Visible : </div>
 		<div class="chatViewPort">
 			<div class="chat">
-			
+				
 			</div>
+			<div class="chatInsight">
+				<table class="CountM">
+					<thead>
+				        <tr>
+				            <th>Messages sent</th>
+				        </tr>
+				    </thead>
+					<tbody></tbody>
+				</table>
+				<div><span class="turnLabel">Turns</span>  <span class="CountT"></span></div>
+			</div>
+
 		</div>
 	</div>
 	
@@ -34,7 +47,7 @@
 			<div class="eventOwnData"></div>
 		</div>
 		<div class="minimapCotainer">
-			
+			<input type="checkbox" name="mapSwitch" id="mapSwitch">
 			<svg class="minimap" preserveAspectRatio viewBox="-46.1 -54.6 54.37 95.9" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 				<defs>
 			    <filter id="shadow">
@@ -43,7 +56,7 @@
 			  </defs>
 				<g class="plantLayer"></g>
 			</svg>
-
+			<label class="mapButon" for="mapSwitch">🖼️</label>
 		</div>
 		
 		

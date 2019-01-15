@@ -5,6 +5,7 @@ var selectedDate = 0;
 var MaxDuration;
 var playInterval;
 
+var maxTurnDuration = 20;
 var hideOnTimeline =["PlantMotions","PlayerMotions","Visibility"]
 function Play(pace){
 	window.clearInterval(playInterval)
@@ -158,9 +159,9 @@ function setupBars(exps){
 		.append("div")
 		.classed("expsView",1)
 		.on("click",displayDetailsOf)
-	views.append("div")
+	var label = views.append("div")
 		.classed("expLabel",1)
-		.text(d =>d.date)
+		.call(makeLabels)
 	let tl = views.append("div")
 		.classed("timeline",1)
 	tl.append("div")
@@ -206,6 +207,14 @@ function displayFilters(markerTypes){
 		.attr("for",d => "toogle"+d)
 		.text(d=> d)
 	
+}
+function makeLabels(labels){
+	let dates = labels.append("div")
+		.classed(".labelDate",1)
+		.text(d=>d.date);
+	let info = labels.append("div")
+		.classed(".labelInfo",1)
+		.text(d=>d.playersNames.join(", "))
 }
 function selectTime(t){
 	d3.selectAll(".timelineUsefull")
@@ -270,6 +279,32 @@ function displayDetailsOf(serie){
 function refreshDetailsOfSeries(){
 	d3.select(".expsView.selected").each(displayDetailsOf)
 }
+function countTurn(chatToDisplay,serie){
+	let turnCount = 0
+	let prevMessageDate = 0
+	function isNewTurn(message){
+
+		if(!prevMessageDate)
+			return true;
+		var name = serie.players[message[1]]
+		if(name == "Agent")
+			return false;
+		if(!message[6])
+			return;
+		var dt = message[0]-prevMessageDate
+		return dt > maxTurnDuration
+				
+
+	}
+	chatToDisplay.forEach(message => {
+		if(isNewTurn(message)){
+			turnCount ++;
+		}
+		prevMessageDate = message[0]
+	})
+	return turnCount;
+
+}
 function updateChat(serie) {
 	let chatVP = d3.select(".chatViewPort").node();
 	let isScrollMax = chatVP.scrollTop + chatVP.clientHeight *1.01 >= chatVP.scrollHeight  
@@ -282,11 +317,33 @@ function updateChat(serie) {
 		.data(chatToDisplay,function(d){
 			return this.id || d && "of_"+serie.expId+"at_"+d[0];
 		})
+	var messageCount = d3.nest()
+		.key(d=>serie.players[d[1]])
+		.entries(chatToDisplay)
+	messageCount.forEach(d=>d.values = d.values.length)
+	var countEntry = d3.select(".CountM tbody")
+		.selectAll("tr")
+		.data(messageCount,function(d){
+			return this.id || d && "countOf_"+d.key;
+		})
+	var newCountEntry =countEntry.enter()
+		.append("tr")
+	newCountEntry.append("td")
+		.text(d=>d.key)
+	newCountEntry.append("td")
+		.classed("countValue",1)
+	newCountEntry.merge(countEntry)
+		.select(".countValue")
+		.text(d=>d.values)
+	countEntry.exit().remove()
+	
 	chatLines.exit().remove()
 	chatLines.enter()
 		.append("div")
 		.classed("chatLines",1)
 		.call(printChatLine,serie)
+	d3.select(".CountT")
+		.text(countTurn(chatToDisplay,serie))
 	if(isScrollMax)
 		chatVP.scrollTop = chatVP.scrollHeight;
 }

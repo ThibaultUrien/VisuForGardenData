@@ -1,6 +1,8 @@
 
 
 var port = process.argv[2] || 3000
+var dir = process.argv[3] || "GoodLogs"
+
 
 var path = require('path')
 var fs = require('fs')
@@ -13,26 +15,27 @@ var bodyParser = require('body-parser');
 var app = express();
 app.use(bodyParser.json())
 
-
+app.get("/LoadData.js",function (req,res){
+  res.type('.js');
+  res.send('StartWithRemoteData("/list.json")');
+})
 app.use(express.static(__dirname))
 
 
 
-console.log("starting : "+port)
-
-app.listen(port, function (){console.log("starting")})
 
 app.get("/list.json",function (req,res){
-  var list = fs.readdirSync("GoodLogs")
-  console.log(list);
+  
+  var list = fs.readdirSync(dir)
   var result = {list : list}
   res.type('json')
   res.send(JSON.stringify(result));
 })
+
 app.get("/logs/:expName",function (req,res){
 
   console.log("try get exp "+ req.params.expName)
-  var dirPath = "GoodLogs/"+req.params.expName
+  var dirPath = dir+"/"+req.params.expName
   var list = fs.readdirSync(dirPath)
   console.log(list);
   var result = {name : req.params.expName}
@@ -49,3 +52,7 @@ app.get("/logs/:expName",function (req,res){
 })
 
 
+
+console.log("starting : "+port)
+
+app.listen(port, function (){console.log("starting")})
