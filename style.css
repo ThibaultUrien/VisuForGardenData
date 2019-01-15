@@ -13,8 +13,8 @@ body {
 	
 }
 .view{
-	height: 100%;
 	display: grid;
+	flex: 70% 1 1;
 }
 .info > .chatViewPort{
 	overflow: auto;
@@ -38,6 +38,7 @@ body {
 	position: relative;
 	grid-template-rows: auto 3em;
 	cursor: pointer;
+	min-height: 3em;
 }
 .timeline{
 	height: 100%;
@@ -197,4 +198,9 @@ text{
 	font-size: 1.8em;
 	line-height: 0.5;
 	font-weight: bold;
+}
+canvas{
+	position: absolute;
+	left: 0px;
+	right: 0px;
 }

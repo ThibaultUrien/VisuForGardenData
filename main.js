@@ -194,8 +194,8 @@ function displayFilters(markerTypes){
 		.style("background-color",d=>colorOf(d))
 	function applyFilter(type){
 		let checked = this.checked;
-		d3.selectAll('.eventMarker[eventtype="'+type+'"]')
-					.style("display",checked?"":"none")
+		d3.selectAll('bar[eventtype="'+type+'"]')
+					.attr("hidden",!checked)
 					.each(d=>d.hidden = !checked ) 
 	}
 	fs.append("input")
@@ -220,13 +220,23 @@ function makeLabels(labels){
 		.text(d=>d.playersNames.join(", "))
 }
 function selectTime(t){
+	var time
+	var slide
+	if(t<1 && t>=0){
+		time = MaxDuration *t;
+		slide = t;
+	}
+	else{
+		time = t;
+		slide = t/MaxDuration
+	}
 	d3.selectAll(".timelineUsefull")
 		.each(d=>{
-			d.selectedTime = t;
+			d.selectedTime = time;
 
 		})
 	d3.selectAll(".timeslider")
-		.property("value",t/MaxDuration)
+		.property("value",slide)
 }
 function onTimeChanged(){
 	let value = this.value
@@ -246,20 +256,87 @@ function isAgentAction(){
 	}
 	return false;
 }
+function refreshCanva(domCanva, domTime){
+	let rootElem = domCanva.parentNode
+	let rect = rootElem.getBoundingClientRect()
+	domCanva.height = rect.height;
+	domCanva.width = rect.width;
+
+	var context = domCanva.getContext('2d')
+	context.clearRect(0,0,domCanva.height,domCanva.width);
+	console.log("redraw");
+	for (var child = domTime.firstChild; child; child = child.nextSibling) 
+		child.redraw(context);
+}
+function Obeserver(domCanva, domTime) {
+	let callback = function(mutationsList){
+		for(var mutation of mutationsList) {
+	        if(!domTime.willRedraw){
+	        	domTime.willRedraw = true;
+	        	requestAnimationFrame(()=>{
+	        		try{
+	        			refreshCanva(domCanva, domTime)
+	        		}finally{
+	        			domTime.willRedraw = false;
+	        		}
+	        	})
+	        }
+	    }
+	}
+	return new MutationObserver(callback)
+    
+};
 function drawEvents(usefullTimeline){
+	usefullTimeline.each(function(d){
+		let canvas = d3.select(this).append("canvas")
+			.on('click',function(){
+				let rect = this.getBoundingClientRect()
+				let time = (d3.event.pageX - rect.left) / rect.width * d.duration
+				selectTime(time);
+				refreshDetailsOfSeries()
 
-	usefullTimeline.selectAll("div")
-		.data(d => d.timeline)
-		.enter()
-		.append("div")
-		.style("left",d=> d.relativeTime*100 + "%")
-		.classed("eventMarker",1)
-		.attr("eventType",d=>d.isAgentAction()?"Agent":d.type)
-		.style("background-color",d=>d.isAgentAction()?colorOf("Agent"):colorOf(d.type)+"af")
-		.on("click",function(d){
+			})
+			.node()
+		let time = d3.select(this).append("time")
+		let domTime = time.node()
+		time.selectAll("bar")
+			.data(d => d.timeline)
+			.enter()
+			.append("bar")
 
-			selectTime(d.tiemstamp)
+			.attr("xrel",d=> d.relativeTime)
+			.attr("eventType",d=>d.isAgentAction()?"Agent":d.type)
+			.attr("fill",d=>d.isAgentAction()?colorOf("Agent"):colorOf(d.type)+"af")
+			.each(function(){
+				this.redraw = (context)=>{
+					if(this.getAttribute("hidden") == "true")
+						return;
+					context.strokeStyle = this.getAttribute("stroke");
+					context.fillStyle = this.getAttribute("fill");
+					let canva = context.canvas
+					let pos = parseFloat(this.getAttribute("xrel")) * canvas.width;
+					context.fillRect(pos,0,window.innerWidth *0.001,canvas.height)
+
+				}
+				var observerOptions = {
+				  childList: true,
+				  attributes: true,
+				  subtree: true //Omit or set to false to observe only changes to the parent node.
+				}
+
+				var observer = Obeserver(canvas,domTime);
+				observer.observe(this, observerOptions);
+			})
+	})
+	
+	window.onresize = function(){
+		usefullTimeline.each(function(d){
+			let canvas = d3.select(this).select("canvas").node()
+			let time = d3.select(this).select("time").node()
+			refreshCanva(canvas, time)
 		})
+	}
+	window.onresize()
 }
 
 function displayDetailsOf(serie){
