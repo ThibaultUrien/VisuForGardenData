@@ -5,7 +5,7 @@ var selectedDate = 0;
 var MaxDuration;
 var playInterval;
 
-var maxTurnDuration = 20;
+var maxTurnDuration = 30;
 var hideOnTimeline =["PlantMotions","PlayerMotions","Visibility"]
 function Play(pace){
 	window.clearInterval(playInterval)
@@ -285,26 +285,44 @@ function refreshDetailsOfSeries(){
 function countTurn(chatToDisplay,serie){
 	let turnCount = 0
 	let prevMessageDate = 0
-	function isNewTurn(message){
+	let spokenThisTurn = {}
+	let exchangeStarter;
+	function isNewTurn(name, date, content){
 
-		if(!prevMessageDate)
-			return true;
-		var name = serie.players[message[1]]
 		if(name == "Agent")
 			return false;
-		if(!message[6])
-			return;
-		var dt = message[0]-prevMessageDate
-		return dt > maxTurnDuration
+		spokenThisTurn[name] = true;
+		if(!prevMessageDate)
+			return true;
+
+		if(!content)
+			return false;
+		var dt = date - prevMessageDate
+
+		if(dt > maxTurnDuration)
+			return true;
+		return Object.keys(spokenThisTurn).length >= 2 && name == exchangeStarter
 				
 
 	}
 	chatToDisplay.forEach(message => {
-		if(isNewTurn(message)){
+		let name = serie.playersNames[message[1]]
+		let date = message[0]
+		let content = message[6]
+		if(isNewTurn(name, date, content)){
 			turnCount ++;
+			spokenThisTurn = {};
+			exchangeStarter = name;
+			spokenThisTurn[name] = true;
+
 		}
+		
 		prevMessageDate = message[0]
 	})
+	if(turnCount > 0){
+		// We count a turn when the next start, so we alway miss the last one.
+		turnCount ++;
+	}
 	return turnCount;
 
 }
