@@ -71,7 +71,7 @@ function mm_ssFormat(timestamp){
 	return mm+":"+ss;
 }
 
-var findEndtryPosition = d3.bisector(function(d) { return d.tiemstamp; }).right
+var findEndtryPosition = d3.bisector(function(d) { return d.tiemstamp; }).left
 // Offter to the user to donwload some data 
 function sendFile(data,name){
 	var link = document.createElement("a");
@@ -183,6 +183,7 @@ function setupBars(exps){
 	timeControl()
 	refreshDetailsOfSeries()
 }
+
 function displayFilters(markerTypes){
 	let fs = d3.select(".filters")
 		.selectAll("div")
@@ -193,8 +194,9 @@ function displayFilters(markerTypes){
 		.style("background-color",d=>colorOf(d))
 	function applyFilter(type){
 		let checked = this.checked;
-			d3.selectAll('.eventMarker[eventtype="'+type+'"]')
-						.style("display",checked?"":"none")
+		d3.selectAll('.eventMarker[eventtype="'+type+'"]')
+					.style("display",checked?"":"none")
+					.each(d=>d.hidden = !checked ) 
 	}
 	fs.append("input")
 		.attr("type","checkbox")
@@ -206,6 +208,7 @@ function displayFilters(markerTypes){
 	fs.append("label")
 		.attr("for",d => "toogle"+d)
 		.text(d=> d)
+
 	
 }
 function makeLabels(labels){
@@ -264,10 +267,10 @@ function displayDetailsOf(serie){
 		.text(serie.playersNames)
 	d3.select(".duration")
 		.text(mm_ssFormat(serie.duration));
-	
-	var selectedEvent = findEndtryPosition(serie.timeline,serie.selectedTime)
+	var visibleEvent = serie.timeline.filter(d=>!d.hidden)
+	var selectedEvent = Math.max(0,findEndtryPosition(visibleEvent,serie.selectedTime) - 1 )
 	if(!isNaN(selectedEvent)){
-		displayDataOf(serie.timeline[Math.min(selectedEvent,serie.timeline.length-1)])
+		displayDataOf(visibleEvent[Math.min(selectedEvent,visibleEvent.length-1)])
 		updateChat(serie)
 		updateMinimap(serie)
 	}
