@@ -34,10 +34,8 @@ app.get("/list.json",function (req,res){
 
 app.get("/logs/:expName",function (req,res){
 
-  console.log("try get exp "+ req.params.expName)
   var dirPath = dir+"/"+req.params.expName
   var list = fs.readdirSync(dirPath)
-  console.log(list);
   var result = {name : req.params.expName}
   for(var file of list) {
     var entryName = file.split(/\.[^.]+$/g)[0]
